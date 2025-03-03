@@ -494,7 +494,7 @@ const CVLandingPage = () => {
       <Header>
         <div className="container">
           <Nav>
-            <Logo>{profile.personalInfo.name.split(' ')[0]}</Logo>
+            <Logo>{/* Logo text removed */}</Logo>
             
             <NavLinks>
               <NavLink href="#hero">Home</NavLink>
