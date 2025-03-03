@@ -14,12 +14,18 @@ const usePdfExport = () => {
   // Generate and download the PDF
   const exportPdf = useCallback(async () => {
     try {
-      // Scroll to top to ensure the entire page is rendered properly
+      // Ensure the page is in a clean state
       window.scrollTo(0, 0);
       
-      // Small delay to ensure the page is fully rendered after scrolling
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Remove any selection that might be active
+      if (window.getSelection) {
+        window.getSelection().removeAllRanges();
+      }
       
+      // Small delay to ensure the page is fully rendered and all styles are applied
+      await new Promise(resolve => setTimeout(resolve, 400));
+      
+      // Generate the PDF
       const result = await generatePdf();
       return result;
     } catch (error) {
@@ -38,6 +44,13 @@ const usePdfExport = () => {
     dispatch(resetError());
   }, [dispatch]);
   
+  // Set content width percentage for PDF
+  const setContentWidthPercentage = useCallback((percentage) => {
+    if (percentage >= 0.5 && percentage <= 0.99) {
+      dispatch(updateOptions({ contentWidthPercentage: percentage }));
+    }
+  }, [dispatch]);
+  
   return {
     // State
     isGenerating,
@@ -49,6 +62,7 @@ const usePdfExport = () => {
     exportPdf,
     setOptions,
     clearError,
+    setContentWidthPercentage,
   };
 };
 

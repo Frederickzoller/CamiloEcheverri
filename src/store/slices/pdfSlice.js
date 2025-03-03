@@ -6,11 +6,10 @@ const initialState = {
   error: null,
   options: {
     filename: 'Executive-CV.pdf',
-    includeProjects: true,
-    includeSkills: true,
-    includeEducation: true,
-    includeCertifications: true,
-    includeLanguages: true,
+    quality: 'high',
+    fillPage: true,
+    includeHeader: false,
+    includeFooter: false,
   },
 };
 

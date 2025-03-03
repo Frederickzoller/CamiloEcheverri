@@ -331,21 +331,23 @@ const PdfLoadingOverlay = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(255, 255, 255, 0.95);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 2rem;
+  text-align: center;
 `;
 
 // Styled PDF loading progress
 const PdfLoadingProgress = styled.div`
   width: 300px;
-  height: 10px;
+  height: 8px;
   background-color: #eee;
-  border-radius: 5px;
-  margin-top: 1rem;
+  border-radius: 4px;
+  margin: 1.5rem 0;
   overflow: hidden;
 `;
 
@@ -355,6 +357,12 @@ const PdfLoadingProgressBar = styled.div`
   background-color: var(--color-secondary);
   width: ${props => props.progress}%;
   transition: width 0.3s ease;
+`;
+
+// Styled PDF loading message
+const PdfLoadingMessage = styled(Typography)`
+  margin-top: 1rem;
+  max-width: 400px;
 `;
 
 /**
@@ -403,19 +411,38 @@ const CVLandingPage = () => {
   
   // Handle PDF export
   const handleExportPdf = async () => {
-    // Close mobile menu if open
-    if (isMobile) {
-      dispatch(closeMenu());
+    try {
+      // Close mobile menu if open
+      if (isMobile) {
+        dispatch(closeMenu());
+      }
+      
+      // Temporarily adjust any styles that might affect PDF generation
+      const cvContainer = document.getElementById('cv-container');
+      if (cvContainer) {
+        // Store original styles
+        const originalStyles = {
+          minHeight: cvContainer.style.minHeight,
+          overflow: cvContainer.style.overflow
+        };
+        
+        // Apply temporary styles for PDF generation
+        cvContainer.style.minHeight = 'auto';
+        cvContainer.style.overflow = 'visible';
+        
+        // Generate and export the PDF
+        await exportPdf();
+        
+        // Restore original styles
+        cvContainer.style.minHeight = originalStyles.minHeight;
+        cvContainer.style.overflow = originalStyles.overflow;
+      } else {
+        // If container not found, just generate the PDF
+        await exportPdf();
+      }
+    } catch (error) {
+      console.error('Error during PDF export:', error);
     }
-    
-    // Scroll to top to ensure the entire page is captured
-    window.scrollTo(0, 0);
-    
-    // Small delay to ensure the page is fully rendered after scrolling
-    await new Promise(resolve => setTimeout(resolve, 100));
-    
-    // Generate and export the PDF
-    await exportPdf();
   };
   
   return (
@@ -448,7 +475,7 @@ const CVLandingPage = () => {
       {/* Main Content */}
       <Main>
         {/* Hero Section */}
-        <HeroSection id="hero" ref={heroRef}>
+        <HeroSection id="hero" ref={heroRef} className="cv-section">
           <div className="container">
             <HeroContent>
               <Typography variant="heading" size="xxxl">
@@ -475,7 +502,7 @@ const CVLandingPage = () => {
                 type="particles"
                 options={{
                   count: 150,
-                  color: 0x333333,
+                  color: 0x333333, // Dark gray
                   size: 0.03,
                   maxDistance: 10,
                 }}
@@ -485,15 +512,16 @@ const CVLandingPage = () => {
         </HeroSection>
         
         {/* Metrics Section */}
-        <Section id="metrics" ref={metricsRef} className="section">
+        <Section id="metrics" ref={metricsRef} className="section cv-section">
           <div className="container">
             <SectionHeader
               title="Key Achievements"
               subtitle="Measurable impact and results from my leadership journey"
               align="center"
+              className="section-header"
             />
             
-            <MetricsGrid>
+            <MetricsGrid className="metrics-grid">
               {profile.metrics.map((metric, index) => (
                 <MetricCard
                   key={index}
@@ -501,7 +529,8 @@ const CVLandingPage = () => {
                   value={metric.value}
                   period={metric.period}
                   icon={metric.icon}
-                  color="var(--color-secondary)"
+                  color="var(--color-secondary)" // Using theme color
+                  className="metric-card"
                 />
               ))}
             </MetricsGrid>
@@ -509,15 +538,16 @@ const CVLandingPage = () => {
         </Section>
         
         {/* Experience Section */}
-        <Section id="experience" ref={experienceRef} className="section" style={{ backgroundColor: '#f8f9fa' }}>
+        <Section id="experience" ref={experienceRef} className="section cv-section" style={{ backgroundColor: '#f8f9fa' }}>
           <div className="container">
             <SectionHeader
               title="Professional Experience"
               subtitle="A track record of leadership and strategic impact across industries"
+              className="section-header"
             />
             
             {profile.experience.map((exp, index) => (
-              <ExperienceItem key={index}>
+              <ExperienceItem key={index} className="experience-item">
                 <ExperienceHeader>
                   <ExperienceCompany variant="subheading" noMargin>
                     {exp.company}
@@ -559,23 +589,24 @@ const CVLandingPage = () => {
         </Section>
         
         {/* Skills Section */}
-        <Section id="skills" ref={skillsRef} className="section">
+        <Section id="skills" ref={skillsRef} className="section cv-section">
           <div className="container">
             <SectionHeader
               title="Skills & Expertise"
               subtitle="Core competencies developed through years of executive leadership"
+              className="section-header"
             />
             
             <SkillsSection>
               {profile.skills.map((category, index) => (
-                <SkillsCategory key={index}>
+                <SkillsCategory key={index} className="skills-category">
                   <Typography variant="subheading" size="xl">
                     {category.category}
                   </Typography>
                   
-                  <SkillsGrid>
+                  <SkillsGrid className="skills-grid">
                     {category.items.map((skill, i) => (
-                      <SkillItem key={i}>
+                      <SkillItem key={i} className="skill-item">
                         <SkillName variant="body" weight="500" noMargin>
                           {skill.name}
                           <span>{skill.proficiency}%</span>
@@ -586,10 +617,10 @@ const CVLandingPage = () => {
                           height="8px"
                           color={
                             category.category === 'Leadership'
-                              ? '#333333'
+                              ? '#333333' // Dark gray
                               : category.category === 'Business'
-                              ? '#555555'
-                              : '#777777'
+                              ? '#555555' // Medium gray
+                              : '#777777' // Light gray
                           }
                         />
                       </SkillItem>
@@ -602,11 +633,12 @@ const CVLandingPage = () => {
         </Section>
         
         {/* Education Section */}
-        <Section id="education" ref={educationRef} className="section" style={{ backgroundColor: '#f8f9fa' }}>
+        <Section id="education" ref={educationRef} className="section cv-section" style={{ backgroundColor: '#f8f9fa' }}>
           <div className="container">
             <SectionHeader
               title="Education & Certifications"
               subtitle="Academic credentials and professional development"
+              className="section-header"
             />
             
             <EducationSection>
@@ -615,7 +647,7 @@ const CVLandingPage = () => {
               </Typography>
               
               {profile.education.map((edu, index) => (
-                <EducationItem key={index}>
+                <EducationItem key={index} className="education-item">
                   <EducationDegree variant="body" weight="600" noMargin>
                     {edu.degree}
                   </EducationDegree>
@@ -643,7 +675,7 @@ const CVLandingPage = () => {
               </Typography>
               
               {profile.certifications.map((cert, index) => (
-                <EducationItem key={index}>
+                <EducationItem key={index} className="education-item">
                   <EducationDegree variant="body" weight="600" noMargin>
                     {cert.name}
                   </EducationDegree>
@@ -664,16 +696,17 @@ const CVLandingPage = () => {
         </Section>
         
         {/* Contact Section */}
-        <Section id="contact" ref={contactRef} className="section">
+        <Section id="contact" ref={contactRef} className="section cv-section">
           <div className="container">
             <SectionHeader
               title="Contact Information"
               subtitle="Get in touch to discuss opportunities and collaborations"
               align="center"
+              className="section-header"
             />
             
             <ContactSection>
-              <ContactItem>
+              <ContactItem className="contact-item">
                 <ContactIcon>📧</ContactIcon>
                 <ContactText>
                   <ContactLabel variant="caption" noMargin>
@@ -685,7 +718,7 @@ const CVLandingPage = () => {
                 </ContactText>
               </ContactItem>
               
-              <ContactItem>
+              <ContactItem className="contact-item">
                 <ContactIcon>📱</ContactIcon>
                 <ContactText>
                   <ContactLabel variant="caption" noMargin>
@@ -697,7 +730,7 @@ const CVLandingPage = () => {
                 </ContactText>
               </ContactItem>
               
-              <ContactItem>
+              <ContactItem className="contact-item">
                 <ContactIcon>📍</ContactIcon>
                 <ContactText>
                   <ContactLabel variant="caption" noMargin>
@@ -709,7 +742,7 @@ const CVLandingPage = () => {
                 </ContactText>
               </ContactItem>
               
-              <ContactItem>
+              <ContactItem className="contact-item">
                 <ContactIcon>🔗</ContactIcon>
                 <ContactText>
                   <ContactLabel variant="caption" noMargin>
@@ -743,13 +776,20 @@ const CVLandingPage = () => {
       {/* PDF Generation Loading Overlay */}
       {isGenerating && (
         <PdfLoadingOverlay>
-          <Typography variant="subheading">
-            Generating PDF...
+          <Typography variant="subheading" size="xl">
+            Generating Professional PDF
           </Typography>
           
           <PdfLoadingProgress>
             <PdfLoadingProgressBar progress={progress} />
           </PdfLoadingProgress>
+          
+          <PdfLoadingMessage variant="body">
+            {progress < 20 && "Preparing content..."}
+            {progress >= 20 && progress < 50 && "Optimizing layout..."}
+            {progress >= 50 && progress < 80 && "Creating professional CV..."}
+            {progress >= 80 && progress < 100 && "Finalizing PDF..."}
+          </PdfLoadingMessage>
           
           {error && (
             <Typography variant="body" color="var(--color-error)" style={{ marginTop: '1rem' }}>
