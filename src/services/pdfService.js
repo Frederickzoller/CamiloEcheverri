@@ -59,6 +59,40 @@ const restoreAnimations = () => {
   }
 };
 
+// Helper function to hide the PDF loading overlay
+const hidePdfLoadingOverlay = () => {
+  const overlays = document.querySelectorAll('.pdf-loading-overlay');
+  const originalStyles = [];
+  
+  overlays.forEach(overlay => {
+    originalStyles.push({
+      element: overlay,
+      display: overlay.style.display,
+      visibility: overlay.style.visibility,
+      opacity: overlay.style.opacity,
+      zIndex: overlay.style.zIndex
+    });
+    
+    // Hide the overlay
+    overlay.style.display = 'none';
+    overlay.style.visibility = 'hidden';
+    overlay.style.opacity = '0';
+    overlay.style.zIndex = '-1';
+  });
+  
+  return originalStyles;
+};
+
+// Helper function to restore the PDF loading overlay
+const restorePdfLoadingOverlay = (originalStyles) => {
+  originalStyles.forEach(style => {
+    style.element.style.display = style.display;
+    style.element.style.visibility = style.visibility;
+    style.element.style.opacity = style.opacity;
+    style.element.style.zIndex = style.zIndex;
+  });
+};
+
 // Helper function to optimize CV content for one-page PDF
 const optimizeCVForPDF = () => {
   // Store original styles to restore later
@@ -412,6 +446,7 @@ const restoreOriginalStyles = (originalStyles) => {
 // Main PDF generation function
 export const generatePdf = async () => {
   let originalStyles = {};
+  let overlayStyles = [];
   
   try {
     // Start the PDF generation process
@@ -433,6 +468,9 @@ export const generatePdf = async () => {
       throw new Error('CV container element not found');
     }
     
+    // Hide the PDF loading overlay before capturing
+    overlayStyles = hidePdfLoadingOverlay();
+    
     // Create PDF document with A4 size
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -445,7 +483,6 @@ export const generatePdf = async () => {
     const pageHeight = pdf.internal.pageSize.getHeight();
     
     // Calculate margins to ensure content occupies approximately 99% of the page width
-    // This is 95% (previous value) + 20% more of the remaining space (95% + (100%-95%)*0.2 = 99%)
     const contentWidthPercentage = 0.99;
     const desiredContentWidth = pageWidth * contentWidthPercentage;
     const horizontalMargin = (pageWidth - desiredContentWidth) / 2; // Equal margins on both sides
@@ -464,7 +501,16 @@ export const generatePdf = async () => {
       width: element.scrollWidth, // Capture full width
       height: element.scrollHeight,
       windowWidth: element.scrollWidth, // Use actual width
+      // Ignore elements with specific classes
+      ignoreElements: (element) => {
+        return element.classList && 
+               (element.classList.contains('pdf-loading-overlay') || 
+                element.classList.contains('PdfLoadingOverlay'));
+      }
     });
+    
+    // Restore the PDF loading overlay after capturing
+    restorePdfLoadingOverlay(overlayStyles);
     
     store.dispatch(updateProgress(70));
     
@@ -513,6 +559,11 @@ export const generatePdf = async () => {
   } catch (error) {
     console.error('Error generating PDF:', error);
     store.dispatch(setError(error.message));
+    
+    // Restore the PDF loading overlay if it was hidden
+    if (overlayStyles.length > 0) {
+      restorePdfLoadingOverlay(overlayStyles);
+    }
     
     // Restore original styles
     restoreOriginalStyles(originalStyles);

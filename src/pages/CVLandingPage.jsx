@@ -775,7 +775,7 @@ const CVLandingPage = () => {
       
       {/* PDF Generation Loading Overlay */}
       {isGenerating && (
-        <PdfLoadingOverlay>
+        <PdfLoadingOverlay className="pdf-loading-overlay">
           <Typography variant="subheading" size="xl">
             Generating Professional PDF
           </Typography>
