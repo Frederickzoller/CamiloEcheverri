@@ -105,6 +105,49 @@ const HeroContent = styled.div`
   position: relative;
   z-index: 2;
   max-width: 600px;
+  display: flex;
+  flex-direction: column;
+`;
+
+// Styled hero top section with image and text
+const HeroTop = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+`;
+
+// Styled profile image container
+const ProfileImageContainer = styled.div`
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 2rem;
+  border: 2px solid var(--color-secondary);
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    margin-bottom: 1rem;
+    margin-right: 0;
+  }
+`;
+
+// Styled profile image
+const ProfileImage = styled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 60% center;
+`;
+
+// Styled hero text content
+const HeroTextContent = styled.div`
+  flex: 1;
 `;
 
 // Styled hero animation
@@ -478,21 +521,28 @@ const CVLandingPage = () => {
         <HeroSection id="hero" ref={heroRef} className="cv-section">
           <div className="container">
             <HeroContent>
-              <Typography variant="heading" size="xxxl">
-                {profile.personalInfo.name}
-              </Typography>
+              <HeroTop className="hero-top">
+                <ProfileImageContainer className="profile-image-container">
+                  <ProfileImage src="/Passbild.jpg" alt={profile.personalInfo.name} />
+                </ProfileImageContainer>
+                <HeroTextContent className="hero-text-content">
+                  <Typography variant="heading" size="xxxl">
+                    {profile.personalInfo.name}
+                  </Typography>
+                  
+                  <Typography variant="subheading" color="var(--color-secondary)" noMargin>
+                    {profile.personalInfo.title}
+                  </Typography>
+                </HeroTextContent>
+              </HeroTop>
               
-              <Typography variant="subheading" color="var(--color-secondary)" noMargin>
-                {profile.personalInfo.title}
-              </Typography>
+              <Divider margin="1rem 0 1.5rem" />
               
-              <Divider margin="2rem 0" />
-              
-              <Typography variant="body">
+              <Typography variant="body" className="hero-summary">
                 {profile.personalInfo.summary}
               </Typography>
               
-              <Button variant="primary" style={{ marginTop: '2rem' }} onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}>
+              <Button variant="primary" style={{ marginTop: '1.5rem' }} onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}>
                 Get in Touch
               </Button>
             </HeroContent>
@@ -506,6 +556,7 @@ const CVLandingPage = () => {
                   size: 0.03,
                   maxDistance: 10,
                 }}
+                className="hero-animation"
               />
             )}
           </div>
@@ -518,7 +569,7 @@ const CVLandingPage = () => {
               title="Key Achievements"
               subtitle="Measurable impact and results from my leadership journey"
               align="center"
-              className="section-header"
+              className="section-header metrics-header"
             />
             
             <MetricsGrid className="metrics-grid">

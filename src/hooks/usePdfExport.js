@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { generatePdf } from '../services/pdfService';
 import { updateOptions, resetError } from '../store/slices/pdfSlice';
@@ -22,47 +23,40 @@ const usePdfExport = () => {
         window.getSelection().removeAllRanges();
       }
       
-      // Small delay to ensure the page is fully rendered and all styles are applied
-      await new Promise(resolve => setTimeout(resolve, 400));
+      // Longer delay to ensure the page is fully rendered and all styles are applied
+      await new Promise(resolve => setTimeout(resolve, 1200)); // Increased to 1200ms for better rendering
       
       // Generate the PDF
-      const result = await generatePdf();
-      return result;
+      await generatePdf();
     } catch (error) {
-      console.error('Error exporting PDF:', error);
-      return false;
+      console.error('Error generating PDF:', error);
     }
   }, []);
   
-  // Update PDF export options
+  // Set PDF export options
   const setOptions = useCallback((newOptions) => {
     dispatch(updateOptions(newOptions));
   }, [dispatch]);
   
-  // Clear any PDF generation errors
+  // Clear any PDF export errors
   const clearError = useCallback(() => {
     dispatch(resetError());
   }, [dispatch]);
   
-  // Set content width percentage for PDF
+  // Set the content width percentage for PDF export
   const setContentWidthPercentage = useCallback((percentage) => {
-    if (percentage >= 0.5 && percentage <= 0.99) {
-      dispatch(updateOptions({ contentWidthPercentage: percentage }));
-    }
+    dispatch(updateOptions({ contentWidthPercentage: percentage }));
   }, [dispatch]);
   
   return {
-    // State
     isGenerating,
     progress,
     error,
     options,
-    
-    // Functions
     exportPdf,
     setOptions,
     clearError,
-    setContentWidthPercentage,
+    setContentWidthPercentage
   };
 };
 

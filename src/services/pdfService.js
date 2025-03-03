@@ -93,6 +93,216 @@ const restorePdfLoadingOverlay = (originalStyles) => {
   });
 };
 
+// Helper function to reorganize layout for PDF export
+const reorganizeLayoutForPdf = () => {
+  // Store original layout for restoration
+  const originalLayout = {
+    heroSection: {},
+    heroContainer: {},
+    heroContent: {},
+    heroTop: {},
+    heroTextContent: {},
+    summaryParagraph: {},
+    contactButton: {},
+    metricsSection: {},
+    threeCanvas: {}
+  };
+
+  // Get elements
+  const heroSection = document.getElementById('hero');
+  const heroContainer = heroSection ? heroSection.querySelector('.container') : null;
+  const heroContent = heroSection ? heroSection.querySelector('.hero-content') : null;
+  const heroTop = heroContent ? heroContent.querySelector('.hero-top') : null;
+  const heroTextContent = heroTop ? heroTop.querySelector('.hero-text-content') : null;
+  const summaryParagraph = heroContent ? heroContent.querySelector('.hero-summary') : null;
+  const contactButton = heroContent ? heroContent.querySelector('button') : null;
+  const metricsSection = document.getElementById('metrics');
+  const threeCanvas = document.querySelector('.three-canvas') || document.querySelector('.hero-animation');
+
+  // Store original styles for restoration
+  if (heroSection) {
+    originalLayout.heroSection = {
+      display: heroSection.style.display,
+      position: heroSection.style.position
+    };
+  }
+
+  if (heroContainer) {
+    originalLayout.heroContainer = {
+      display: heroContainer.style.display,
+      position: heroContainer.style.position,
+      gridTemplateColumns: heroContainer.style.gridTemplateColumns
+    };
+  }
+
+  if (heroContent) {
+    originalLayout.heroContent = {
+      display: heroContent.style.display,
+      position: heroContent.style.position,
+      width: heroContent.style.width,
+      gridColumn: heroContent.style.gridColumn
+    };
+  }
+
+  if (summaryParagraph) {
+    originalLayout.summaryParagraph = {
+      marginTop: summaryParagraph.style.marginTop,
+      gridColumn: summaryParagraph.style.gridColumn
+    };
+  }
+
+  if (contactButton) {
+    originalLayout.contactButton = {
+      display: contactButton.style.display,
+      gridColumn: contactButton.style.gridColumn
+    };
+  }
+
+  if (metricsSection) {
+    originalLayout.metricsSection = {
+      display: metricsSection.style.display,
+      position: metricsSection.style.position
+    };
+  }
+
+  if (threeCanvas) {
+    originalLayout.threeCanvas = {
+      display: threeCanvas.style.display,
+      position: threeCanvas.style.position
+    };
+    
+    // Hide the Three.js canvas/animation
+    threeCanvas.style.display = 'none';
+  }
+
+  // Set up grid layout for the hero section
+  if (heroContainer) {
+    // Convert container to grid
+    heroContainer.style.display = 'grid';
+    heroContainer.style.gridTemplateColumns = '1fr 1fr'; // Two equal columns
+    heroContainer.style.gridGap = '2rem';
+    
+    // Position hero content in the left column
+    if (heroContent) {
+      heroContent.style.gridColumn = '1 / 2';
+      heroContent.style.width = '100%';
+    }
+    
+    if (summaryParagraph) {
+      summaryParagraph.style.gridColumn = '1 / 2';
+    }
+    
+    if (contactButton) {
+      contactButton.style.gridColumn = '1 / 2';
+    }
+    
+    // Create metrics container for the right column
+    if (metricsSection) {
+      const metricsContainer = document.createElement('div');
+      metricsContainer.classList.add('metrics-container-clone');
+      metricsContainer.style.gridColumn = '2 / 3';
+      metricsContainer.style.alignSelf = 'start';
+      metricsContainer.style.justifySelf = 'start';
+      metricsContainer.style.padding = '1rem';
+      metricsContainer.style.width = '100%';
+      
+      // Clone metrics content
+      const metricsHeader = metricsSection.querySelector('.section-header');
+      const metricsGrid = metricsSection.querySelector('.metrics-grid');
+      
+      if (metricsHeader && metricsGrid) {
+        const metricsHeaderClone = metricsHeader.cloneNode(true);
+        const metricsGridClone = metricsGrid.cloneNode(true);
+        
+        // Style header
+        metricsHeaderClone.style.textAlign = 'center';
+        metricsHeaderClone.style.marginBottom = '1rem';
+        
+        // Style grid
+        metricsGridClone.style.display = 'grid';
+        metricsGridClone.style.gridTemplateColumns = 'repeat(2, 1fr)';
+        metricsGridClone.style.gap = '1rem';
+        
+        // Add content to container
+        metricsContainer.appendChild(metricsHeaderClone);
+        metricsContainer.appendChild(metricsGridClone);
+        
+        // Add container to hero section
+        heroContainer.appendChild(metricsContainer);
+        
+        // Hide original metrics section
+        metricsSection.style.display = 'none';
+      }
+    }
+  }
+  
+  return originalLayout;
+};
+
+// Helper function to restore original layout
+const restoreOriginalLayout = (originalLayout) => {
+  // Get elements
+  const heroSection = document.getElementById('hero');
+  const heroContainer = heroSection ? heroSection.querySelector('.container') : null;
+  const heroContent = heroSection ? heroSection.querySelector('.hero-content') : null;
+  const heroTop = heroContent ? heroContent.querySelector('.hero-top') : null;
+  const summaryParagraph = heroContent ? heroContent.querySelector('.hero-summary') : null;
+  const contactButton = heroContent ? heroContent.querySelector('button') : null;
+  const metricsSection = document.getElementById('metrics');
+  const threeCanvas = document.querySelector('.three-canvas') || document.querySelector('.hero-animation');
+
+  // Restore hero section
+  if (heroSection && originalLayout.heroSection) {
+    heroSection.style.display = originalLayout.heroSection.display;
+    heroSection.style.position = originalLayout.heroSection.position;
+  }
+
+  // Restore hero container
+  if (heroContainer && originalLayout.heroContainer) {
+    heroContainer.style.display = originalLayout.heroContainer.display;
+    heroContainer.style.position = originalLayout.heroContainer.position;
+    heroContainer.style.gridTemplateColumns = originalLayout.heroContainer.gridTemplateColumns;
+  }
+
+  // Restore hero content
+  if (heroContent && originalLayout.heroContent) {
+    heroContent.style.display = originalLayout.heroContent.display;
+    heroContent.style.position = originalLayout.heroContent.position;
+    heroContent.style.width = originalLayout.heroContent.width;
+    heroContent.style.gridColumn = originalLayout.heroContent.gridColumn;
+  }
+
+  // Restore summary paragraph
+  if (summaryParagraph && originalLayout.summaryParagraph) {
+    summaryParagraph.style.marginTop = originalLayout.summaryParagraph.marginTop;
+    summaryParagraph.style.gridColumn = originalLayout.summaryParagraph.gridColumn;
+  }
+
+  // Restore contact button
+  if (contactButton && originalLayout.contactButton) {
+    contactButton.style.display = originalLayout.contactButton.display;
+    contactButton.style.gridColumn = originalLayout.contactButton.gridColumn;
+  }
+
+  // Restore metrics section
+  if (metricsSection && originalLayout.metricsSection) {
+    metricsSection.style.display = originalLayout.metricsSection.display;
+    metricsSection.style.position = originalLayout.metricsSection.position;
+  }
+
+  // Restore three.js canvas/animation
+  if (threeCanvas && originalLayout.threeCanvas) {
+    threeCanvas.style.display = originalLayout.threeCanvas.display;
+    threeCanvas.style.position = originalLayout.threeCanvas.position;
+  }
+
+  // Remove the cloned metrics container
+  const metricsContainerClone = document.querySelector('.metrics-container-clone');
+  if (metricsContainerClone) {
+    metricsContainerClone.remove();
+  }
+};
+
 // Helper function to optimize CV content for one-page PDF
 const optimizeCVForPDF = () => {
   // Store original styles to restore later
@@ -104,7 +314,8 @@ const optimizeCVForPDF = () => {
       fontSize: document.body.style.fontSize,
     },
     header: null,
-    footer: null
+    footer: null,
+    profileImage: null
   };
   
   // Temporarily increase base font size for better readability in PDF
@@ -112,6 +323,34 @@ const optimizeCVForPDF = () => {
     originalStyles.body.fontSize = document.body.style.fontSize;
   }
   document.body.style.fontSize = '20px'; // Increased to 20px for maximum readability
+  
+  // Optimize profile image for PDF
+  const profileImage = document.querySelector('.profile-image-container');
+  if (profileImage) {
+    originalStyles.profileImage = {
+      width: profileImage.style.width,
+      height: profileImage.style.height,
+      marginRight: profileImage.style.marginRight,
+      borderWidth: profileImage.style.borderWidth
+    };
+    
+    // Make profile image slightly smaller for PDF but still larger than before
+    profileImage.style.width = '130px'; // Increased from 100px to 130px
+    profileImage.style.height = '130px'; // Increased from 100px to 130px
+    profileImage.style.marginRight = '1.5rem';
+    profileImage.style.borderWidth = '1px';
+    
+    // Also ensure the image inside maintains its positioning
+    const profileImg = profileImage.querySelector('img');
+    if (profileImg) {
+      originalStyles.profileImg = {
+        objectPosition: profileImg.style.objectPosition
+      };
+      
+      // Ensure the object-position is maintained
+      profileImg.style.objectPosition = '60% center';
+    }
+  }
   
   // Hide header and footer for PDF generation
   const header = document.querySelector('header');
@@ -319,6 +558,21 @@ const restoreOriginalStyles = (originalStyles) => {
     document.body.style.fontSize = originalStyles.body.fontSize;
   }
   
+  // Restore profile image styles
+  const profileImage = document.querySelector('.profile-image-container');
+  if (profileImage && originalStyles.profileImage) {
+    profileImage.style.width = originalStyles.profileImage.width;
+    profileImage.style.height = originalStyles.profileImage.height;
+    profileImage.style.marginRight = originalStyles.profileImage.marginRight;
+    profileImage.style.borderWidth = originalStyles.profileImage.borderWidth;
+    
+    // Also restore the image positioning
+    const profileImg = profileImage.querySelector('img');
+    if (profileImg && originalStyles.profileImg) {
+      profileImg.style.objectPosition = originalStyles.profileImg.objectPosition;
+    }
+  }
+  
   // Restore header and footer
   const header = document.querySelector('header');
   const footer = document.querySelector('footer');
@@ -447,6 +701,7 @@ const restoreOriginalStyles = (originalStyles) => {
 export const generatePdf = async () => {
   let originalStyles = {};
   let overlayStyles = [];
+  let originalLayout = null;
   
   try {
     // Start the PDF generation process
@@ -458,6 +713,9 @@ export const generatePdf = async () => {
     // Prepare the DOM for PDF generation
     await prepareAnimationsForPdf();
     store.dispatch(updateProgress(20));
+    
+    // Reorganize layout for PDF
+    originalLayout = reorganizeLayoutForPdf();
     
     // Optimize CV layout for PDF
     originalStyles = optimizeCVForPDF();
@@ -546,6 +804,11 @@ export const generatePdf = async () => {
     // Save the PDF
     pdf.save(options.filename);
     
+    // Restore original layout
+    if (originalLayout) {
+      restoreOriginalLayout(originalLayout);
+    }
+    
     // Restore original styles
     restoreOriginalStyles(originalStyles);
     
@@ -563,6 +826,11 @@ export const generatePdf = async () => {
     // Restore the PDF loading overlay if it was hidden
     if (overlayStyles.length > 0) {
       restorePdfLoadingOverlay(overlayStyles);
+    }
+    
+    // Restore original layout
+    if (originalLayout) {
+      restoreOriginalLayout(originalLayout);
     }
     
     // Restore original styles
