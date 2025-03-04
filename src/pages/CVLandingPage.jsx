@@ -666,6 +666,7 @@ const CVLandingPage = () => {
                         <ProgressBar
                           value={skill.proficiency}
                           height="8px"
+                          showLabel={false}
                           color={
                             category.category === 'Leadership'
                               ? '#333333' // Dark gray
