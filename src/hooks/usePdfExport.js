@@ -23,15 +23,52 @@ const usePdfExport = () => {
         window.getSelection().removeAllRanges();
       }
       
-      // Longer delay to ensure the page is fully rendered and all styles are applied
-      await new Promise(resolve => setTimeout(resolve, 1200)); // Increased to 1200ms for better rendering
+      // Make sure layout is properly rendered before proceeding
+      // This ensures all DOM elements are properly positioned
+      await new Promise((resolve) => setTimeout(resolve, 150));
       
-      // Generate the PDF
-      await generatePdf();
+      // Force a layout pass to ensure elements are properly positioned
+      document.body.getBoundingClientRect();
+      
+      // Ensure all elements are loaded before PDF generation
+      await new Promise((resolve) => {
+        if (document.readyState === 'complete') {
+          resolve();
+        } else {
+          window.addEventListener('load', resolve, { once: true });
+        }
+      });
+      
+      // Configure PDF options with improved spacing settings
+      const updatedOptions = {
+        ...options,
+        ensureProperLayout: true,
+        layoutTimeout: 400, // Increase timeout to ensure layout renders properly
+        spacing: {
+          compact: true,           // Enable compact spacing
+          sideBySideGap: 10,       // Reduced gap between left and right sections
+          itemSpacing: 10,         // Compact spacing between items
+          verticalSpacing: 12      // Reduced vertical spacing
+        },
+        equalColumns: true         // Ensure equal column widths (50/50)
+      };
+      
+      // Update options in store
+      dispatch(updateOptions(updatedOptions));
+      
+      // Clear any previous errors
+      dispatch(resetError());
+      
+      // Generate the PDF with enhanced spacing options
+      const success = await generatePdf(updatedOptions);
+      
+      if (!success) {
+        console.error('PDF generation failed');
+      }
     } catch (error) {
-      console.error('Error generating PDF:', error);
+      console.error('Error exporting PDF:', error);
     }
-  }, []);
+  }, [dispatch, options]);
   
   // Set PDF export options
   const setOptions = useCallback((newOptions) => {

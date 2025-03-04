@@ -247,7 +247,7 @@ const restoreOriginalLayout = (originalLayout) => {
   const heroContent = heroSection ? heroSection.querySelector('.hero-content') : null;
   const heroTop = heroContent ? heroContent.querySelector('.hero-top') : null;
   const summaryParagraph = heroContent ? heroContent.querySelector('.hero-summary') : null;
-  const contactButton = heroContent ? heroContent.querySelector('button') : null;
+  const contactButton = heroContent ? heroSection.querySelector('button') : null;
   const metricsSection = document.getElementById('metrics');
   const threeCanvas = document.querySelector('.three-canvas') || document.querySelector('.hero-animation');
 
@@ -697,22 +697,383 @@ const restoreOriginalStyles = (originalStyles) => {
   }
 };
 
+// Helper function to swap Key Achievements and Contact sections for PDF
+const swapSectionsForPdf = (options = {}) => {
+  console.log('Running swapSectionsForPdf with layout handling...');
+  
+  const originalPositions = {
+    heroAnimation: null,
+    contact: null,
+    keyAchievements: null,
+    heroLayout: null,
+    documentAdditions: []
+  };
+
+  // Ensure options are defined
+  options = options || {};
+  const layoutTimeout = options.layoutTimeout || 300;
+  
+  // Get the hero section and its animation
+  const heroSection = document.getElementById('hero');
+  let heroAnimation = null;
+  
+  if (heroSection) {
+    // Find the three.js animation element in hero section
+    heroAnimation = heroSection.querySelector('.hero-animation');
+  } else {
+    console.warn('Hero section not found');
+    return originalPositions;
+  }
+  
+  // Find contact section and key achievements by their heading text
+  const allSections = document.querySelectorAll('.section-header');
+  let contactSection = null;
+  let keyAchievementsSection = null;
+  let keyAchievementsContainer = null;
+  
+  allSections.forEach(section => {
+    const heading = section.querySelector('h1');
+    if (heading && heading.textContent === 'Contact Information') {
+      contactSection = section.closest('.container');
+    } else if (heading && heading.textContent === 'Key Achievements') {
+      keyAchievementsSection = section;
+      keyAchievementsContainer = section.closest('.container');
+    }
+  });
+  
+  if (!contactSection) {
+    console.warn('Contact section not found');
+    return originalPositions;
+  }
+
+  // IMPORTANT: Force a layout computation to ensure elements are positioned
+  document.body.getBoundingClientRect();
+  
+  // Store the original layout before making changes
+  originalPositions.heroLayout = {
+    width: heroSection.style.width,
+    display: heroSection.style.display,
+    position: heroSection.style.position
+  };
+  
+  // Create a dedicated style element for our PDF layout
+  const styleElement = document.createElement('style');
+  styleElement.id = 'pdf-export-style-overrides';
+  styleElement.innerHTML = `
+    /* Core layout fixes */
+    #hero {
+      position: relative !important;
+      display: flex !important;
+      width: 100% !important;
+      min-height: auto !important;
+      margin-bottom: 2rem !important;
+    }
+    #hero .container {
+      display: flex !important;
+      width: 100% !important;
+      max-width: 100% !important;
+      padding: 0 !important;
+      justify-content: space-between !important;
+    }
+    .pdf-hero-content {
+      width: auto !important;
+      flex: 1 1 auto !important;
+      padding-right: 15px !important;
+      box-sizing: border-box !important;
+      max-width: 60% !important;
+    }
+    .pdf-contact-wrapper {
+      width: 50% !important;
+      flex: 0 0 50% !important;
+      padding-left: 15px !important;
+      box-sizing: border-box !important;
+      position: relative !important;
+      border-left: 1px solid rgba(0,0,0,0.1) !important;
+    }
+    .pdf-hero-content img {
+      width: 130px !important;
+      height: 130px !important;
+    }
+    .pdf-hero-content .hero-top {
+      margin-bottom: 1.2rem !important;
+    }
+    .pdf-contact-wrapper h1, .pdf-contact-wrapper h2 {
+      font-size: 1.5rem !important;
+      margin-bottom: 8px !important;
+      border-bottom: 1px solid #eee !important;
+      padding-bottom: 8px !important;
+      text-align: center !important;
+    }
+    .pdf-contact-wrapper p {
+      font-size: 0.9rem !important;
+      margin-bottom: 15px !important;
+      text-align: center !important;
+    }
+    .pdf-contact-grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, 1fr) !important;
+      grid-gap: 10px !important;
+      width: 100% !important;
+    }
+    .pdf-contact-item {
+      display: flex !important;
+      align-items: flex-start !important;
+      width: 100% !important;
+    }
+    .pdf-contact-icon {
+      margin-right: 6px !important;
+      flex-shrink: 0 !important;
+    }
+    .pdf-contact-label {
+      font-size: 0.75rem !important;
+      color: var(--color-text-light) !important;
+      margin-bottom: 2px !important;
+    }
+    /* Critical override to prevent empty space */
+    @media print {
+      .pdf-hero-content, .pdf-contact-wrapper {
+        display: block !important;
+      }
+      .pdf-hero-content {
+        width: auto !important;
+        flex: 1 1 auto !important;
+        max-width: 60% !important;
+      }
+      #hero .container {
+        justify-content: space-between !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+      }
+      .pdf-contact-grid {
+        display: grid !important;
+        width: 100% !important;
+      }
+      .pdf-contact-item {
+        width: 100% !important;
+      }
+    }
+  `;
+  document.head.appendChild(styleElement);
+  originalPositions.documentAdditions.push(styleElement);
+
+  // Handle key achievements section - remove from original position
+  if (keyAchievementsContainer) {
+    originalPositions.keyAchievements = {
+      element: keyAchievementsContainer,
+      parentNode: keyAchievementsContainer.parentNode,
+      nextSibling: keyAchievementsContainer.nextSibling
+    };
+    
+    // Clone and move to end
+    const keyAchievementsClone = keyAchievementsContainer.cloneNode(true);
+    keyAchievementsContainer.parentNode.removeChild(keyAchievementsContainer);
+    originalPositions.keyAchievements.removed = true;
+    
+    const mainContent = document.querySelector('main') || document.body;
+    mainContent.appendChild(keyAchievementsClone);
+    originalPositions.keyAchievementsClone = keyAchievementsClone;
+  }
+  
+  // Hide the hero animation
+  if (heroAnimation) {
+    originalPositions.heroAnimation = {
+      element: heroAnimation,
+      display: heroAnimation.style.display
+    };
+    heroAnimation.style.display = 'none';
+  }
+  
+  // Store and hide original contact info
+  originalPositions.contact = {
+    element: contactSection,
+    parentNode: contactSection.parentNode,
+    nextSibling: contactSection.nextSibling,
+    display: contactSection.style.display
+  };
+  contactSection.style.display = 'none';
+  
+  // Get the hero container
+  const heroContainer = heroSection.querySelector('.container');
+  if (heroContainer) {
+    // Store original state
+    originalPositions.heroContainer = {
+      element: heroContainer,
+      innerHTML: heroContainer.innerHTML
+    };
+    
+    // Extract contact information data
+    const contactData = {
+      title: '',
+      subtitle: '',
+      items: []
+    };
+    
+    // Get header information
+    const contactHeader = contactSection.querySelector('.section-header');
+    if (contactHeader) {
+      const title = contactHeader.querySelector('h1');
+      const subtitle = contactHeader.querySelector('p');
+      if (title) contactData.title = title.textContent;
+      if (subtitle) contactData.subtitle = subtitle.textContent;
+    }
+    
+    // Get contact items
+    const contactItems = contactSection.querySelectorAll('.contact-item');
+    contactItems.forEach(item => {
+      const icon = item.querySelector('.sc-sediK');
+      const label = item.querySelector('.sc-haUlXw');
+      const value = item.querySelector('.sc-gIivzS');
+      
+      if (label && value) {
+        contactData.items.push({
+          icon: icon ? icon.innerHTML : '',
+          label: label.textContent,
+          value: value.textContent
+        });
+      }
+    });
+    
+    // CRITICAL FIX: Use direct HTML injection to ensure proper layout
+    const heroContentDiv = document.createElement('div');
+    heroContentDiv.className = 'pdf-hero-content';
+    
+    // Get original hero content (except animation)
+    const originalHeroContent = heroContainer.querySelector('.sc-gpHbIA');
+    if (originalHeroContent) {
+      const clonedContent = originalHeroContent.cloneNode(true);
+      const animationInClone = clonedContent.querySelector('.hero-animation');
+      if (animationInClone) {
+        animationInClone.remove();
+      }
+      heroContentDiv.appendChild(clonedContent);
+    }
+    
+    // Create contact section wrapper
+    const contactWrapper = document.createElement('div');
+    contactWrapper.className = 'pdf-contact-wrapper';
+    
+    // Build contact content with precise structure
+    contactWrapper.innerHTML = `
+      <h1>${contactData.title}</h1>
+      <p>${contactData.subtitle}</p>
+      <div class="pdf-contact-grid">
+        ${contactData.items.map(item => `
+          <div class="pdf-contact-item">
+            <div class="pdf-contact-icon">${item.icon}</div>
+            <div>
+              <div class="pdf-contact-label">${item.label}</div>
+              <div>${item.value}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    
+    // Clear container and add our new layout
+    heroContainer.innerHTML = '';
+    heroContainer.appendChild(heroContentDiv);
+    heroContainer.appendChild(contactWrapper);
+    
+    // CRITICAL FIX: Add a validation/correction timeout to ensure proper rendering
+    const validationTimeout = setTimeout(() => {
+      const contactWrapperCheck = document.querySelector('.pdf-contact-wrapper');
+      if (contactWrapperCheck && contactWrapperCheck.offsetWidth < 10) {
+        console.log('Fixing contact wrapper visibility...');
+        contactWrapperCheck.style.cssText = 'width: 45% !important; display: block !important; visibility: visible !important;';
+        
+        // Force repaint
+        contactWrapperCheck.getBoundingClientRect();
+      }
+    }, layoutTimeout);
+    originalPositions.validationTimeout = validationTimeout;
+  }
+  
+  return originalPositions;
+};
+
+// Helper function to restore original section positions
+const restoreSectionPositions = (originalPositions) => {
+  if (!originalPositions) {
+    return;
+  }
+
+  // Clear any validation timeout
+  if (originalPositions.validationTimeout) {
+    clearTimeout(originalPositions.validationTimeout);
+  }
+  
+  // Remove any added style elements
+  if (originalPositions.documentAdditions) {
+    originalPositions.documentAdditions.forEach(element => {
+      if (element && element.parentNode) {
+        element.parentNode.removeChild(element);
+      }
+    });
+  }
+
+  // Restore hero section animation
+  if (originalPositions.heroAnimation && originalPositions.heroAnimation.element) {
+    originalPositions.heroAnimation.element.style.display = originalPositions.heroAnimation.display;
+  }
+  
+  // Restore hero layout
+  if (originalPositions.heroLayout) {
+    const heroSection = document.getElementById('hero');
+    if (heroSection) {
+      heroSection.style.width = originalPositions.heroLayout.width;
+      heroSection.style.display = originalPositions.heroLayout.display;
+      heroSection.style.position = originalPositions.heroLayout.position;
+    }
+  }
+  
+  // Restore hero container
+  if (originalPositions.heroContainer && originalPositions.heroContainer.element) {
+    originalPositions.heroContainer.element.innerHTML = originalPositions.heroContainer.innerHTML;
+  }
+  
+  // Restore contact section
+  if (originalPositions.contact && originalPositions.contact.element) {
+    originalPositions.contact.element.style.display = originalPositions.contact.display;
+  }
+  
+  // Restore key achievements section
+  if (originalPositions.keyAchievements && originalPositions.keyAchievements.element && originalPositions.keyAchievements.removed) {
+    // Re-insert the original key achievements section at its original position
+    if (originalPositions.keyAchievements.nextSibling) {
+      originalPositions.keyAchievements.parentNode.insertBefore(
+        originalPositions.keyAchievements.element,
+        originalPositions.keyAchievements.nextSibling
+      );
+    } else {
+      originalPositions.keyAchievements.parentNode.appendChild(
+        originalPositions.keyAchievements.element
+      );
+    }
+  }
+  
+  // Remove the cloned key achievements that was appended to the bottom
+  if (originalPositions.keyAchievementsClone) {
+    originalPositions.keyAchievementsClone.remove();
+  }
+};
+
 // Main PDF generation function
-export const generatePdf = async () => {
+export const generatePdf = async (options = {}) => {
   let originalStyles = {};
   let overlayStyles = [];
   let originalLayout = null;
+  let originalSectionPositions = null;
   
   try {
     // Start the PDF generation process
     store.dispatch(startGenerating());
     
-    // Get PDF options from the store
-    const { options } = store.getState().pdf;
-    
     // Prepare the DOM for PDF generation
     await prepareAnimationsForPdf();
     store.dispatch(updateProgress(20));
+    
+    // Swap sections for PDF - pass the options
+    originalSectionPositions = swapSectionsForPdf(options);
     
     // Reorganize layout for PDF
     originalLayout = reorganizeLayoutForPdf();
@@ -804,6 +1165,11 @@ export const generatePdf = async () => {
     // Save the PDF
     pdf.save(options.filename);
     
+    // Restore original section positions
+    if (originalSectionPositions) {
+      restoreSectionPositions(originalSectionPositions);
+    }
+    
     // Restore original layout
     if (originalLayout) {
       restoreOriginalLayout(originalLayout);
@@ -826,6 +1192,11 @@ export const generatePdf = async () => {
     // Restore the PDF loading overlay if it was hidden
     if (overlayStyles.length > 0) {
       restorePdfLoadingOverlay(overlayStyles);
+    }
+    
+    // Restore original section positions
+    if (originalSectionPositions) {
+      restoreSectionPositions(originalSectionPositions);
     }
     
     // Restore original layout
