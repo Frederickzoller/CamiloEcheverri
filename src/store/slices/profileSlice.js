@@ -138,33 +138,16 @@ const initialState = {
   ],
   education: [
     {
-      degree: 'Master of Business Administration',
-      institution: 'Harvard Business School',
-      year: '2008',
-      honors: 'Baker Scholar',
+      degree: 'International Finance (Bsc)',
+      institution: 'Frankfurt University of Applied Sciences',
+      year: '2015 - 2019',
+      honors: 'Thesis: Measuring the profitability of a short-term, long only contrarian strategy on the cryptocurrency market',
     },
     {
-      degree: 'Bachelor of Science in Computer Science',
-      institution: 'Massachusetts Institute of Technology',
-      year: '2004',
-      honors: 'Summa Cum Laude',
-    },
-  ],
-  certifications: [
-    {
-      name: 'Advanced Management Program',
-      issuer: 'INSEAD',
-      year: '2016',
-    },
-    {
-      name: 'Board Director Certification',
-      issuer: 'National Association of Corporate Directors',
-      year: '2019',
-    },
-    {
-      name: 'Executive Leadership',
-      issuer: 'Stanford Graduate School of Business',
-      year: '2015',
+      degree: 'Exchange Semester, Global Business Administration (Bsc)',
+      institution: 'Sungkyunkwan University',
+      year: '2018 - 2018',
+      honors: '',
     },
   ],
   languages: [

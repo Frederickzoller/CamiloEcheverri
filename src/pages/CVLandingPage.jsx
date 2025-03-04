@@ -423,6 +423,7 @@ const CVLandingPage = () => {
   const experienceRef = useRef(null);
   const skillsRef = useRef(null);
   const educationRef = useRef(null);
+  const languagesRef = useRef(null);
   const contactRef = useRef(null);
   
   // Handle scroll to update active section
@@ -441,6 +442,8 @@ const CVLandingPage = () => {
         dispatch(setActiveSection('skills'));
       } else if (educationRef.current && scrollPosition < educationRef.current.offsetTop + educationRef.current.offsetHeight) {
         dispatch(setActiveSection('education'));
+      } else if (languagesRef.current && scrollPosition < languagesRef.current.offsetTop + languagesRef.current.offsetHeight) {
+        dispatch(setActiveSection('languages'));
       } else if (contactRef.current) {
         dispatch(setActiveSection('contact'));
       }
@@ -501,6 +504,7 @@ const CVLandingPage = () => {
               <NavLink href="#experience">Experience</NavLink>
               <NavLink href="#skills">Skills</NavLink>
               <NavLink href="#education">Education</NavLink>
+              <NavLink href="#languages">Languages</NavLink>
               <NavLink href="#contact">Contact</NavLink>
             </NavLinks>
             
@@ -688,7 +692,7 @@ const CVLandingPage = () => {
         <Section id="education" ref={educationRef} className="section cv-section" style={{ backgroundColor: '#f8f9fa' }}>
           <div className="container">
             <SectionHeader
-              title="Education & Certifications"
+              title="Education"
               subtitle="Academic credentials and professional development"
               className="section-header"
             />
@@ -722,28 +726,34 @@ const CVLandingPage = () => {
                 </EducationItem>
               ))}
               
-              <Typography variant="subheading" size="xl" margin="2.5rem 0 1.5rem 0">
-                Professional Certifications
-              </Typography>
-              
-              {profile.certifications.map((cert, index) => (
-                <EducationItem key={index} className="education-item">
-                  <EducationDegree variant="body" weight="600" noMargin>
-                    {cert.name}
-                  </EducationDegree>
-                  
-                  <EducationInstitution variant="body" noMargin>
-                    {cert.issuer}
-                  </EducationInstitution>
-                  
-                  <EducationDetails>
-                    <EducationYear variant="caption" noMargin>
-                      {cert.year}
-                    </EducationYear>
-                  </EducationDetails>
+            </EducationSection>
+          </div>
+        </Section>
+        
+        {/* Languages Section */}
+        <Section id="languages" ref={languagesRef} className="section cv-section">
+          <div className="container">
+            <SectionHeader
+              title="Languages"
+              subtitle="Communication skills across multiple languages"
+              className="section-header"
+            />
+            
+            <SkillsGrid className="skills-grid" style={{ marginTop: '2rem' }}>
+              {profile.languages.map((language, index) => (
+                <EducationItem key={index} className="language-item">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <EducationDegree variant="body" weight="600" noMargin>
+                      {language.name}
+                    </EducationDegree>
+                    
+                    <EducationInstitution variant="body" noMargin>
+                      {language.proficiency}
+                    </EducationInstitution>
+                  </div>
                 </EducationItem>
               ))}
-            </EducationSection>
+            </SkillsGrid>
           </div>
         </Section>
         
