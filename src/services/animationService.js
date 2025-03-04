@@ -11,6 +11,7 @@ class AnimationService {
     this.animations = {};
     this.frameIds = {};
     this.initialized = false;
+    this.resizeObservers = {};
   }
   
   // Initialize the animation service
@@ -52,7 +53,7 @@ class AnimationService {
     // Create camera
     const camera = new THREE.PerspectiveCamera(
       options.fov || 75,
-      container.clientWidth / container.clientHeight,
+      container.clientWidth / container.clientHeight || 1, // Add fallback to prevent NaN
       options.near || 0.1,
       options.far || 1000
     );
@@ -63,7 +64,7 @@ class AnimationService {
       antialias: true,
       alpha: true,
     });
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(container.clientWidth || 1, container.clientHeight || 1); // Add fallback to prevent zero size
     renderer.setPixelRatio(window.devicePixelRatio);
     
     // Add the renderer to the container
@@ -83,21 +84,76 @@ class AnimationService {
       const container = document.getElementById(containerId);
       if (!container) return;
       
-      const width = container.clientWidth;
-      const height = container.clientHeight;
+      const width = container.clientWidth || 1; // Ensure non-zero value
+      const height = container.clientHeight || 1; // Ensure non-zero value
       
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       
       renderer.setSize(width, height);
+      
+      // Ensure the scene is rendered after resize
+      this.renderScene(containerId);
     };
     
     window.addEventListener('resize', handleResize);
     
-    // Start the animation loop
-    this.startAnimationLoop(containerId);
+    // Create and store the resize observer to detect container size changes
+    if (typeof ResizeObserver !== 'undefined') {
+      // Clean up any existing observer
+      if (this.resizeObservers[containerId]) {
+        this.resizeObservers[containerId].disconnect();
+      }
+      
+      // Create a new observer
+      const resizeObserver = new ResizeObserver((entries) => {
+        handleResize();
+      });
+      
+      resizeObserver.observe(container);
+      this.resizeObservers[containerId] = resizeObserver;
+    }
+    
+    // Check if container is visible and properly sized
+    if (this.isElementInViewport(container) && container.clientWidth > 0 && container.clientHeight > 0) {
+      // Container is visible and has dimensions, start animation loop immediately
+      this.startAnimationLoop(containerId);
+    } else {
+      // Container may not be visible yet, wait a moment and check again
+      setTimeout(() => {
+        handleResize(); // Force resize to update dimensions
+        this.startAnimationLoop(containerId);
+        // Mark animations as loaded
+        store.dispatch(setAnimationsLoaded(true));
+      }, 100);
+    }
     
     return true;
+  }
+  
+  // Check if an element is in the viewport
+  isElementInViewport(el) {
+    if (!el) return false;
+    
+    const rect = el.getBoundingClientRect();
+    
+    return (
+      rect.top <= (window.innerHeight || document.documentElement.clientHeight) &&
+      rect.left <= (window.innerWidth || document.documentElement.clientWidth) &&
+      rect.bottom >= 0 &&
+      rect.right >= 0
+    );
+  }
+  
+  // Render a specific scene once (used for manual updates)
+  renderScene(containerId) {
+    const scene = this.scenes[containerId];
+    const camera = this.cameras[containerId];
+    const renderer = this.renderers[containerId];
+    
+    if (scene && camera && renderer) {
+      renderer.render(scene, camera);
+    }
   }
   
   // Add an object to a scene
@@ -167,6 +223,12 @@ class AnimationService {
   destroyScene(containerId) {
     // Stop the animation loop
     this.stopAnimationLoop(containerId);
+    
+    // Clean up resize observer
+    if (this.resizeObservers[containerId]) {
+      this.resizeObservers[containerId].disconnect();
+      delete this.resizeObservers[containerId];
+    }
     
     // Remove the renderer from the DOM
     const renderer = this.renderers[containerId];
