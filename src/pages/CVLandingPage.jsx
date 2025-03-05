@@ -28,7 +28,7 @@ const Header = styled.header`
   background-color: white;
   box-shadow: var(--shadow-sm);
   z-index: 100;
-  padding: 1rem 0;
+  padding: 1.5rem 0;
 `;
 
 // Styled navigation
@@ -577,7 +577,16 @@ const CVLandingPage = () => {
                 {profile.personalInfo.summary}
               </Typography>
               
-              <Button variant="primary" style={{ marginTop: '1.5rem' }} onClick={() => document.getElementById('contact').scrollIntoView({ behavior: 'smooth' })}>
+              <Button 
+                variant="primary" 
+                style={{ marginTop: '1.5rem' }} 
+                onClick={() => {
+                  const contactSection = document.getElementById('contact');
+                  if (contactSection) {
+                    contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              >
                 Get in Touch
               </Button>
             </HeroContent>
@@ -842,17 +851,24 @@ const CVLandingPage = () => {
                     LinkedIn
                   </ContactLabel>
                   <ContactValue variant="body" noMargin>
-                    {profile.personalInfo.contact.linkedin}
+                    <a 
+                      href={profile.personalInfo.contact.linkedin}
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      style={{ 
+                        color: 'inherit', 
+                        textDecoration: 'none',
+                        transition: 'opacity 0.3s ease'
+                      }}
+                      onMouseOver={(e) => e.target.style.opacity = '0.8'}
+                      onMouseOut={(e) => e.target.style.opacity = '1'}
+                    >
+                      {profile.personalInfo.contact.linkedin}
+                    </a>
                   </ContactValue>
                 </ContactText>
               </ContactItem>
             </ContactSection>
-            
-            <div style={{ textAlign: 'center', marginTop: '3rem' }}>
-              <Button variant="download" onClick={handleExportPdf}>
-                Download Complete CV
-              </Button>
-            </div>
           </div>
         </Section>
       </Main>
