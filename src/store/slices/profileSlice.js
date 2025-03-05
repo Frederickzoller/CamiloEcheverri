@@ -4,7 +4,7 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   personalInfo: {
     name: 'Camilo Echeverri',
-    title: 'Founder and Interoperable Gaming Specialist',
+    title: 'Founder and Gaming Interoperability Specialist',
     summary: 'Web3 explorer since 2017. Transitioned from tradfi to Blockchain development, co-founding THE HUB DAO. Focused on disrupting the new Internet through interoperable gaming assets and true digital ownership. AI and prompt engineering enthusiast.',
     contact: {
       email: 'camilo.echeverri@thehubdao.xyz',
@@ -141,7 +141,7 @@ const initialState = {
       degree: 'International Finance (Bsc)',
       institution: 'Frankfurt University of Applied Sciences',
       year: '2015 - 2019',
-      honors: 'Thesis: Measuring the profitability of a short-term, long only contrarian strategy on the cryptocurrency market',
+      honors: '',
     },
     {
       degree: 'Exchange Semester, Global Business Administration (Bsc)',
