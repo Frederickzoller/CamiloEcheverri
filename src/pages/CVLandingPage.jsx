@@ -36,6 +36,7 @@ const Nav = styled.nav`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
 `;
 
 // Styled logo
@@ -50,6 +51,9 @@ const Logo = styled.div`
 const NavLinks = styled.div`
   display: flex;
   gap: 2rem;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   
   @media (max-width: 768px) {
     display: none;
@@ -367,6 +371,31 @@ const Footer = styled.footer`
   text-align: center;
 `;
 
+// Styled clickable footer text
+const ClickableFooterText = styled(Typography)`
+  cursor: pointer;
+  display: inline-block;
+  transition: opacity 0.3s ease;
+  position: relative;
+  
+  &:hover {
+    opacity: 0.8;
+  }
+  
+  &:hover::after {
+    content: "Download CV";
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.8rem;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 3px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+`;
+
 // Styled PDF loading overlay
 const PdfLoadingOverlay = styled.div`
   position: fixed;
@@ -507,10 +536,6 @@ const CVLandingPage = () => {
               <NavLink href="#languages">Languages</NavLink>
               <NavLink href="#contact">Contact</NavLink>
             </NavLinks>
-            
-            <Button variant="download" size="small" onClick={handleExportPdf}>
-              Download CV
-            </Button>
             
             <MobileMenuButton>
               ☰
@@ -829,9 +854,14 @@ const CVLandingPage = () => {
       {/* Footer */}
       <Footer>
         <div className="container">
-          <Typography variant="body" color="white" noMargin>
+          <ClickableFooterText 
+            variant="body" 
+            color="white" 
+            noMargin 
+            onClick={handleExportPdf}
+          >
             &copy; {new Date().getFullYear()} {profile.personalInfo.name} | Executive CV
-          </Typography>
+          </ClickableFooterText>
         </div>
       </Footer>
       
