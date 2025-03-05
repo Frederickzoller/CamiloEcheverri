@@ -151,10 +151,10 @@ const initialState = {
     },
   ],
   languages: [
-    { name: 'English', proficiency: 'Native' },
-    { name: 'Spanish', proficiency: 'Fluent' },
-    { name: 'French', proficiency: 'Intermediate' },
-    { name: 'Mandarin', proficiency: 'Basic' },
+    { name: 'Spanish', proficiency: 'Native' },
+    { name: 'English', proficiency: 'Fluent' },
+    { name: 'German', proficiency: 'Fluent' },
+    { name: 'Italian', proficiency: 'Intermediate' },
   ],
 };
 
