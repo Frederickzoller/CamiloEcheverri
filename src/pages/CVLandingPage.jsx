@@ -291,6 +291,12 @@ const EducationItem = styled.div`
   background-color: white;
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-sm);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-md);
+  }
 `;
 
 // Styled education degree
