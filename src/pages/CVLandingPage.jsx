@@ -1096,7 +1096,7 @@ const CVLandingPage = () => {
             noMargin 
             onClick={handleExportPdf}
           >
-            &copy; {new Date().getFullYear()} {profile.personalInfo.name} | Executive CV
+            &copy; {new Date().getFullYear()} {profile.personalInfo.name} 
           </ClickableFooterText>
         </div>
       </Footer>
