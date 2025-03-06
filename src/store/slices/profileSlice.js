@@ -58,7 +58,7 @@ const initialState = {
       company: 'The DAC',
       title: 'Co-Founder',
       period: 'Mar 2022 - Present',
-      location: 'Frankfurt, DE',
+      location: 'Frankfurt, GER',
       description: 'Created a LATAM focused incubator for Web3 projects. Ran through three cohorts, with 10+ startups and 100+ participants',
       achievements: [
         'Bootstrapped VIIO, the leading digital dollars savings app in LATAM',
@@ -71,7 +71,7 @@ const initialState = {
       company: 'Index Intelligence',
       title: 'Index Data Analyst',
       period: 'Jun 2010 - Feb 2014',
-      location: 'Boston, MA',
+      location: 'Frankfurt, GER',
       description: 'Developed equity indices for leading hedge funds and asset managers in EMEA region',
       achievements: [
         'Calculated and monitored the performance of equity indices, identifying trends and anomalies in returns, volatility, and sector weightings',
