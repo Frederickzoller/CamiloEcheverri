@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import styled from 'styled-components';
 import Typography from '../components/atoms/Typography';
@@ -87,6 +87,77 @@ const MobileMenuButton = styled.button`
   
   @media (max-width: 768px) {
     display: block;
+  }
+`;
+
+// Styled mobile menu overlay
+const MobileMenuOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  opacity: ${props => (props.isOpen ? 1 : 0)};
+  visibility: ${props => (props.isOpen ? 'visible' : 'hidden')};
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+`;
+
+// Styled mobile menu
+const MobileMenu = styled.div`
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 75%;
+  max-width: 300px;
+  height: 100%;
+  background-color: white;
+  z-index: 201;
+  box-shadow: var(--shadow-lg);
+  padding: 2rem;
+  transform: ${props => (props.isOpen ? 'translateX(0)' : 'translateX(100%)')};
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+`;
+
+// Styled mobile menu close button
+const MobileMenuCloseButton = styled.button`
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--color-primary);
+  cursor: pointer;
+`;
+
+// Styled mobile menu links
+const MobileNavLinks = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 3rem;
+`;
+
+// Styled mobile nav link
+const MobileNavLink = styled.a`
+  color: var(--color-text);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 1.25rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border);
+  transition: color 0.3s ease;
+  
+  &:hover {
+    color: var(--color-secondary);
+  }
+  
+  &.active {
+    color: var(--color-secondary);
   }
 `;
 
@@ -451,7 +522,10 @@ const CVLandingPage = () => {
   const { profile } = useSelector(state => state);
   const { isGenerating, progress, error, exportPdf } = usePdfExport();
   const { isMobile } = useResponsive();
-  const { isEnabled: animationsEnabled } = useAnimations();
+  const { isEnabled: animationsEnabled, enableAnimations } = useAnimations();
+  
+  // State for mobile menu
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const heroRef = useRef(null);
   const metricsRef = useRef(null);
@@ -460,6 +534,76 @@ const CVLandingPage = () => {
   const educationRef = useRef(null);
   const languagesRef = useRef(null);
   const contactRef = useRef(null);
+  
+  // Toggle mobile menu
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+  
+  // Close mobile menu
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false);
+  };
+  
+  // Handle mobile navigation click
+  const handleMobileNavClick = (sectionId) => {
+    closeMobileMenu();
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+  
+  // Disable body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+  
+  // Ensure animations are properly initialized on component mount
+  useEffect(() => {
+    let animationTimer = null;
+    let opacityTimer = null;
+    
+    // Make sure animations are enabled when the component mounts
+    if (enableAnimations && typeof enableAnimations === 'function') {
+      // Small delay to ensure the DOM is fully ready
+      animationTimer = setTimeout(() => {
+        enableAnimations(true);
+        
+        // Force a re-render of the animation container after enabling
+        opacityTimer = setTimeout(() => {
+          const animationContainer = document.querySelector('.hero-animation');
+          if (animationContainer) {
+            // This slight opacity change helps force Three.js to reinitialize properly
+            animationContainer.style.opacity = '0.99';
+            
+            setTimeout(() => {
+              animationContainer.style.opacity = '1';
+            }, 50);
+          }
+        }, 150);
+      }, 100);
+    }
+    
+    // Clean up timers on component unmount
+    return () => {
+      if (animationTimer) clearTimeout(animationTimer);
+      if (opacityTimer) clearTimeout(opacityTimer);
+      
+      // Disable animations when component unmounts to prevent errors
+      if (enableAnimations && typeof enableAnimations === 'function') {
+        enableAnimations(false);
+      }
+    };
+  }, [enableAnimations]);
   
   // Handle scroll to update active section
   useEffect(() => {
@@ -543,12 +687,56 @@ const CVLandingPage = () => {
               <NavLink href="#contact">Contact</NavLink>
             </NavLinks>
             
-            <MobileMenuButton>
+            <MobileMenuButton onClick={toggleMobileMenu}>
               ☰
             </MobileMenuButton>
           </Nav>
         </div>
       </Header>
+      
+      {/* Mobile Menu */}
+      <MobileMenuOverlay isOpen={isMobileMenuOpen} onClick={closeMobileMenu} />
+      <MobileMenu isOpen={isMobileMenuOpen}>
+        <MobileMenuCloseButton onClick={closeMobileMenu}>
+          ✕
+        </MobileMenuCloseButton>
+        
+        <Typography variant="heading" size="xl">
+          Menu
+        </Typography>
+        
+        <MobileNavLinks>
+          <MobileNavLink href="#hero" onClick={() => handleMobileNavClick('hero')}>
+            Home
+          </MobileNavLink>
+          <MobileNavLink href="#experience" onClick={() => handleMobileNavClick('experience')}>
+            Experience
+          </MobileNavLink>
+          <MobileNavLink href="#skills" onClick={() => handleMobileNavClick('skills')}>
+            Skills
+          </MobileNavLink>
+          <MobileNavLink href="#education" onClick={() => handleMobileNavClick('education')}>
+            Education
+          </MobileNavLink>
+          <MobileNavLink href="#languages" onClick={() => handleMobileNavClick('languages')}>
+            Languages
+          </MobileNavLink>
+          <MobileNavLink href="#contact" onClick={() => handleMobileNavClick('contact')}>
+            Contact
+          </MobileNavLink>
+        </MobileNavLinks>
+        
+        <Button 
+          variant="primary" 
+          style={{ marginTop: 'auto', marginBottom: '1rem' }} 
+          onClick={() => {
+            closeMobileMenu();
+            handleExportPdf();
+          }}
+        >
+          Download CV
+        </Button>
+      </MobileMenu>
       
       {/* Main Content */}
       <Main>
