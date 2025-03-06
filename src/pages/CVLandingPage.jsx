@@ -571,32 +571,58 @@ const CVLandingPage = () => {
   useEffect(() => {
     let animationTimer = null;
     let opacityTimer = null;
+    let rafId = null;
     
     // Make sure animations are enabled when the component mounts
     if (enableAnimations && typeof enableAnimations === 'function') {
-      // Small delay to ensure the DOM is fully ready
-      animationTimer = setTimeout(() => {
-        enableAnimations(true);
-        
-        // Force a re-render of the animation container after enabling
-        opacityTimer = setTimeout(() => {
+      // Enable animations immediately
+      enableAnimations(true);
+      
+      // Use requestAnimationFrame to ensure DOM is ready
+      rafId = requestAnimationFrame(() => {
+        // Small delay to ensure the DOM is fully rendered
+        animationTimer = setTimeout(() => {
           const animationContainer = document.querySelector('.hero-animation');
           if (animationContainer) {
-            // This slight opacity change helps force Three.js to reinitialize properly
+            // Force a re-render of the animation container
             animationContainer.style.opacity = '0.99';
             
-            setTimeout(() => {
+            // Ensure the container has dimensions
+            if (animationContainer.offsetHeight === 0) {
+              animationContainer.style.height = '100%';
+            }
+            
+            // Force Three.js to initialize properly
+            opacityTimer = setTimeout(() => {
               animationContainer.style.opacity = '1';
-            }, 50);
+              
+              // Additional trigger for Three.js initialization
+              const event = new Event('resize');
+              window.dispatchEvent(event);
+            }, 100);
+          } else {
+            // If container not found, try again after a short delay
+            setTimeout(() => {
+              const retryContainer = document.querySelector('.hero-animation');
+              if (retryContainer) {
+                retryContainer.style.opacity = '0.99';
+                setTimeout(() => {
+                  retryContainer.style.opacity = '1';
+                  const event = new Event('resize');
+                  window.dispatchEvent(event);
+                }, 100);
+              }
+            }, 200);
           }
-        }, 150);
-      }, 100);
+        }, 50);
+      });
     }
     
     // Clean up timers on component unmount
     return () => {
       if (animationTimer) clearTimeout(animationTimer);
       if (opacityTimer) clearTimeout(opacityTimer);
+      if (rafId) cancelAnimationFrame(rafId);
       
       // Disable animations when component unmounts to prevent errors
       if (enableAnimations && typeof enableAnimations === 'function') {

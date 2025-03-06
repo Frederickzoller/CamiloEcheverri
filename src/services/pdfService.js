@@ -741,6 +741,19 @@ const swapSectionsForPdf = (options = {}) => {
     }
   });
   
+  // Attempt to get profile data from Redux store
+  let profileData = null;
+  try {
+    // Try to access store from window.__REDUX_DATA__ or similar
+    if (window && window.__REDUX_STATE__) {
+      profileData = window.__REDUX_STATE__.profile.personalInfo;
+    } else if (window && window.store && window.store.getState) {
+      profileData = window.store.getState().profile.personalInfo;
+    }
+  } catch (error) {
+    console.warn('Could not get profile data from Redux store');
+  }
+  
   if (!contactSection) {
     console.warn('Contact section not found');
     return originalPositions;
@@ -760,7 +773,7 @@ const swapSectionsForPdf = (options = {}) => {
   const styleElement = document.createElement('style');
   styleElement.id = 'pdf-export-style-overrides';
   styleElement.innerHTML = `
-    /* Core layout fixes */
+    /* Core layout fixes for PDF export */
     #hero {
       position: relative !important;
       display: flex !important;
@@ -776,80 +789,159 @@ const swapSectionsForPdf = (options = {}) => {
       justify-content: space-between !important;
     }
     .pdf-hero-content {
-      width: auto !important;
-      flex: 1 1 auto !important;
+      width: 60% !important;
+      flex: 0 0 60% !important;
       padding-right: 15px !important;
       box-sizing: border-box !important;
-      max-width: 60% !important;
     }
     .pdf-contact-wrapper {
-      width: 50% !important;
-      flex: 0 0 50% !important;
+      width: 40% !important;
+      flex: 0 0 40% !important;
       padding-left: 15px !important;
       box-sizing: border-box !important;
       position: relative !important;
       border-left: 1px solid rgba(0,0,0,0.1) !important;
+      display: block !important;
+      visibility: visible !important;
+      min-width: 150px !important;
+      overflow: visible !important;
+      z-index: 999 !important;
     }
-    .pdf-hero-content img {
+    .pdf-profile-header {
+      display: flex !important;
+      align-items: center !important;
+      margin-bottom: 1rem !important;
+    }
+    .pdf-profile-img {
       width: 130px !important;
       height: 130px !important;
+      border-radius: 50% !important;
+      overflow: hidden !important;
+      margin-right: 1rem !important;
+      border: 2px solid #f0f0f0 !important;
     }
-    .pdf-hero-content .hero-top {
-      margin-bottom: 1.2rem !important;
+    .pdf-profile-img img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
     }
-    .pdf-contact-wrapper h1, .pdf-contact-wrapper h2 {
+    .pdf-profile-title {
+      flex: 1 !important;
+    }
+    .pdf-profile-title h1 {
+      margin: 0 0 0.5rem 0 !important;
+      font-size: 1.8rem !important;
+    }
+    .pdf-profile-title h2 {
+      margin: 0 !important;
+      font-size: 1.2rem !important;
+      color: #666 !important;
+    }
+    .pdf-hero-content .hero-summary {
+      margin-top: 0.5rem !important;
+      line-height: 1.4 !important;
+    }
+    .pdf-contact-wrapper h1 {
       font-size: 1.5rem !important;
-      margin-bottom: 8px !important;
+      margin-bottom: 12px !important;
       border-bottom: 1px solid #eee !important;
       padding-bottom: 8px !important;
-      text-align: center !important;
+      text-align: left !important;
+      display: block !important;
     }
     .pdf-contact-wrapper p {
       font-size: 0.9rem !important;
       margin-bottom: 15px !important;
-      text-align: center !important;
+      text-align: left !important;
+      display: block !important;
     }
     .pdf-contact-grid {
       display: grid !important;
-      grid-template-columns: repeat(2, 1fr) !important;
-      grid-gap: 10px !important;
+      grid-template-columns: 1fr !important;
+      grid-gap: 12px !important;
       width: 100% !important;
+      visibility: visible !important;
+      min-height: 50px !important;
     }
     .pdf-contact-item {
       display: flex !important;
       align-items: flex-start !important;
       width: 100% !important;
+      margin-bottom: 6px !important;
+      padding-bottom: 6px !important;
+      visibility: visible !important;
+      min-height: 30px !important;
     }
     .pdf-contact-icon {
-      margin-right: 6px !important;
+      margin-right: 10px !important;
       flex-shrink: 0 !important;
+      width: 20px !important;
+      height: 20px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      visibility: visible !important;
+    }
+    .pdf-contact-icon svg {
+      width: 18px !important;
+      height: 18px !important;
+      visibility: visible !important;
+      display: block !important;
+    }
+    .pdf-contact-text {
+      flex: 1 !important;
+      visibility: visible !important;
+      display: block !important;
+      min-width: 100px !important;
     }
     .pdf-contact-label {
-      font-size: 0.75rem !important;
-      color: var(--color-text-light) !important;
-      margin-bottom: 2px !important;
+      font-size: 0.8rem !important;
+      color: var(--color-text-light, #666) !important;
+      margin-bottom: 3px !important;
+      font-weight: 500 !important;
+      display: block !important;
+      visibility: visible !important;
+    }
+    .pdf-contact-value {
+      font-size: 0.95rem !important;
+      word-break: break-word !important;
+      display: block !important;
+      visibility: visible !important;
     }
     /* Critical override to prevent empty space */
     @media print {
+      body * {
+        -webkit-print-color-adjust: exact !important;
+        color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .pdf-hero-content, .pdf-contact-wrapper {
         display: block !important;
-      }
-      .pdf-hero-content {
-        width: auto !important;
-        flex: 1 1 auto !important;
-        max-width: 60% !important;
+        page-break-inside: avoid !important;
+        visibility: visible !important;
       }
       #hero .container {
+        display: flex !important;
         justify-content: space-between !important;
         align-items: flex-start !important;
         width: 100% !important;
+        page-break-inside: avoid !important;
       }
       .pdf-contact-grid {
         display: grid !important;
         width: 100% !important;
+        visibility: visible !important;
       }
       .pdf-contact-item {
         width: 100% !important;
+        page-break-inside: avoid !important;
+        visibility: visible !important;
+        display: block !important;
+      }
+      .pdf-contact-text, .pdf-contact-label, .pdf-contact-value {
+        visibility: visible !important;
+        display: block !important;
       }
     }
   `;
@@ -901,10 +993,39 @@ const swapSectionsForPdf = (options = {}) => {
       innerHTML: heroContainer.innerHTML
     };
     
+    // Create standard contact info with icons
+    const standardContactInfo = {
+      email: {
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path fill="currentColor" d="M48 64C21.5 64 0 85.5 0 112c0 15.1 7.1 29.3 19.2 38.4L236.8 313.6c11.4 8.5 27 8.5 38.4 0L492.8 150.4c12.1-9.1 19.2-23.3 19.2-38.4c0-26.5-21.5-48-48-48H48zM0 176V384c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V176L294.4 339.2c-22.8 17.1-54 17.1-76.8 0L0 176z"/></svg>',
+        label: 'Email',
+        value: profileData && profileData.contact ? profileData.contact.email : ''
+      },
+      phone: {
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path fill="currentColor" d="M164.9 24.6c-7.7-18.6-28-28.5-47.4-23.2l-88 24C12.1 30.2 0 46 0 64C0 311.4 200.6 512 448 512c18 0 33.8-12.1 38.6-29.5l24-88c5.3-19.4-4.6-39.7-23.2-47.4l-96-40c-16.3-6.8-35.2-2.1-46.3 11.6L304.7 368C234.3 334.7 177.3 277.7 144 207.3L193.3 167c13.7-11.2 18.4-30 11.6-46.3l-40-96z"/></svg>',
+        label: 'Phone',
+        value: profileData && profileData.contact ? profileData.contact.phone : ''
+      },
+      location: {
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="16" height="16"><path fill="currentColor" d="M215.7 499.2C267 435 384 279.4 384 192C384 86 298 0 192 0S0 86 0 192c0 87.4 117 243 168.3 307.2c12.3 15.3 35.1 15.3 47.4 0zM192 128a64 64 0 1 1 0 128 64 64 0 1 1 0-128z"/></svg>',
+        label: 'Location',
+        value: profileData && profileData.contact ? profileData.contact.location : ''
+      },
+      linkedin: {
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="16" height="16"><path fill="currentColor" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>',
+        label: 'LinkedIn',
+        value: profileData && profileData.contact ? profileData.contact.linkedin : ''
+      },
+      twitter: {
+        icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16"><path fill="currentColor" d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z"/></svg>',
+        label: 'Twitter',
+        value: profileData && profileData.contact ? profileData.contact.twitter : ''
+      }
+    };
+    
     // Extract contact information data
     const contactData = {
-      title: '',
-      subtitle: '',
+      title: 'Contact Information',
+      subtitle: 'Get in touch to discuss opportunities and collaborations',
       items: []
     };
     
@@ -917,38 +1038,225 @@ const swapSectionsForPdf = (options = {}) => {
       if (subtitle) contactData.subtitle = subtitle.textContent;
     }
     
-    // Get contact items
-    const contactItems = contactSection.querySelectorAll('.contact-item');
+    // Get contact items using more flexible selectors
+    const contactItems = contactSection.querySelectorAll('.contact-item, [class*="contact-item"], [class*="ContactItem"]');
+    const contactInfoFound = {
+      email: false,
+      phone: false,
+      location: false,
+      linkedin: false,
+      twitter: false
+    };
+
     contactItems.forEach(item => {
-      const icon = item.querySelector('.sc-sediK');
-      const label = item.querySelector('.sc-haUlXw');
-      const value = item.querySelector('.sc-gIivzS');
+      // Try various selector patterns to find icon, label and value
+      const icon = item.querySelector(
+        '.sc-sediK, [class*="icon"], [class*="Icon"], svg, [class*="svg"], [class*="fa-"], i[class*="fa"]'
+      );
       
-      if (label && value) {
+      const label = item.querySelector(
+        '.sc-haUlXw, [class*="label"], [class*="Label"], [class*="title"], [class*="Title"], .label, .title'
+      );
+      
+      const value = item.querySelector(
+        '.sc-gIivzS, [class*="value"], [class*="Value"], a[href], [class*="text"], [class*="Text"], .value, .text'
+      );
+      
+      if (label || value) {
+        const labelText = label ? label.textContent.trim() : '';
+        const valueText = value ? (value.textContent || value.value || '').trim() : '';
+        
+        // Try to detect contact type from label or href
+        let contactType = '';
+        if (labelText.toLowerCase().includes('email')) {
+          contactType = 'email';
+          contactInfoFound.email = true;
+        } else if (labelText.toLowerCase().includes('phone') || labelText.toLowerCase().includes('tel')) {
+          contactType = 'phone';
+          contactInfoFound.phone = true;
+        } else if (labelText.toLowerCase().includes('location') || labelText.toLowerCase().includes('address')) {
+          contactType = 'location';
+          contactInfoFound.location = true;
+        } else if (labelText.toLowerCase().includes('linkedin')) {
+          contactType = 'linkedin';
+          contactInfoFound.linkedin = true;
+        } else if (labelText.toLowerCase().includes('twitter') || labelText.toLowerCase().includes('x.com')) {
+          contactType = 'twitter';
+          contactInfoFound.twitter = true;
+        } else if (value && value.href) {
+          const href = value.href.toLowerCase();
+          if (href.includes('mailto:')) {
+            contactType = 'email';
+            contactInfoFound.email = true;
+          } else if (href.includes('tel:')) {
+            contactType = 'phone';
+            contactInfoFound.phone = true;
+          } else if (href.includes('linkedin.com')) {
+            contactType = 'linkedin';
+            contactInfoFound.linkedin = true;
+          } else if (href.includes('twitter.com') || href.includes('x.com')) {
+            contactType = 'twitter';
+            contactInfoFound.twitter = true;
+          }
+        }
+        
+        // Use standard icon if available for the detected type
+        let iconHTML = icon ? icon.outerHTML : '<div></div>';
+        if (contactType && standardContactInfo[contactType]) {
+          iconHTML = standardContactInfo[contactType].icon;
+        }
+        
         contactData.items.push({
-          icon: icon ? icon.innerHTML : '',
-          label: label.textContent,
-          value: value.textContent
+          icon: iconHTML,
+          label: labelText || (contactType && standardContactInfo[contactType] ? standardContactInfo[contactType].label : ''),
+          value: valueText,
+          type: contactType
         });
       }
     });
     
-    // CRITICAL FIX: Use direct HTML injection to ensure proper layout
-    const heroContentDiv = document.createElement('div');
-    heroContentDiv.className = 'pdf-hero-content';
-    
-    // Get original hero content (except animation)
-    const originalHeroContent = heroContainer.querySelector('.sc-gpHbIA');
-    if (originalHeroContent) {
-      const clonedContent = originalHeroContent.cloneNode(true);
-      const animationInClone = clonedContent.querySelector('.hero-animation');
-      if (animationInClone) {
-        animationInClone.remove();
+    // Add missing contact information from Redux store if available
+    if (profileData && profileData.contact) {
+      if (!contactInfoFound.email && profileData.contact.email) {
+        contactData.items.push({
+          icon: standardContactInfo.email.icon,
+          label: 'Email',
+          value: profileData.contact.email,
+          type: 'email'
+        });
       }
-      heroContentDiv.appendChild(clonedContent);
+      
+      if (!contactInfoFound.phone && profileData.contact.phone) {
+        contactData.items.push({
+          icon: standardContactInfo.phone.icon,
+          label: 'Phone',
+          value: profileData.contact.phone,
+          type: 'phone'
+        });
+      }
+      
+      if (!contactInfoFound.location && profileData.contact.location) {
+        contactData.items.push({
+          icon: standardContactInfo.location.icon,
+          label: 'Location',
+          value: profileData.contact.location,
+          type: 'location'
+        });
+      }
+      
+      if (!contactInfoFound.linkedin && profileData.contact.linkedin) {
+        contactData.items.push({
+          icon: standardContactInfo.linkedin.icon,
+          label: 'LinkedIn',
+          value: profileData.contact.linkedin,
+          type: 'linkedin'
+        });
+      }
+      
+      if (!contactInfoFound.twitter && profileData.contact.twitter) {
+        contactData.items.push({
+          icon: standardContactInfo.twitter.icon,
+          label: 'Twitter',
+          value: profileData.contact.twitter,
+          type: 'twitter'
+        });
+      }
     }
     
-    // Create contact section wrapper
+    // Fallback to hardcoded values for critical contact info as last resort
+    if (contactData.items.length === 0) {
+      const fallbackItems = [
+        {
+          icon: standardContactInfo.email.icon,
+          label: 'Email',
+          value: 'camilo.echeverri@thehubdao.xyz',
+          type: 'email'
+        },
+        {
+          icon: standardContactInfo.phone.icon,
+          label: 'Phone',
+          value: '+4915759128734',
+          type: 'phone'
+        },
+        {
+          icon: standardContactInfo.location.icon,
+          label: 'Location',
+          value: 'Frankfurt, Germany',
+          type: 'location'
+        },
+        {
+          icon: standardContactInfo.linkedin.icon,
+          label: 'LinkedIn',
+          value: 'https://www.linkedin.com/in/caem2017/',
+          type: 'linkedin'
+        }
+      ];
+      
+      contactData.items = fallbackItems;
+    }
+    
+    // Sort contact items in a logical order: email, phone, location, linkedin, twitter
+    const contactTypeOrder = ['email', 'phone', 'location', 'linkedin', 'twitter'];
+    contactData.items.sort((a, b) => {
+      const indexA = contactTypeOrder.indexOf(a.type);
+      const indexB = contactTypeOrder.indexOf(b.type);
+      return (indexA !== -1 ? indexA : 999) - (indexB !== -1 ? indexB : 999);
+    });
+    
+    // Get profile information - find the profile image, name and title
+    const profileImage = heroSection.querySelector('.profile-image-container img, .avatar img');
+    const profileName = heroSection.querySelector('h1');
+    const profileTitle = heroSection.querySelector('h2');
+    const profileSummary = heroSection.querySelector('.hero-summary, p');
+    
+    // Create hero content div (left side)
+    const heroContentDiv = document.createElement('div');
+    heroContentDiv.className = 'pdf-hero-content';
+
+    // Create profile header with image and title
+    const profileHeader = document.createElement('div');
+    profileHeader.className = 'pdf-profile-header';
+    
+    // Create profile image container
+    const profileImgContainer = document.createElement('div');
+    profileImgContainer.className = 'pdf-profile-img';
+    if (profileImage) {
+      profileImgContainer.innerHTML = `<img src="${profileImage.src}" alt="Profile" />`;
+    } else if (profileData) {
+      // Try to get profile image from a known location
+      const imgSrc = '/images/profile.jpg';
+      profileImgContainer.innerHTML = `<img src="${imgSrc}" alt="Profile" />`;
+    }
+    
+    // Create profile title container
+    const profileTitleContainer = document.createElement('div');
+    profileTitleContainer.className = 'pdf-profile-title';
+    profileTitleContainer.innerHTML = `
+      <h1>${profileName ? profileName.textContent : (profileData ? profileData.name : 'Camilo Echeverri')}</h1>
+      <h2>${profileTitle ? profileTitle.textContent : (profileData ? profileData.title : 'Founder and Gaming Interoperability Specialist')}</h2>
+    `;
+    
+    // Assemble profile header
+    profileHeader.appendChild(profileImgContainer);
+    profileHeader.appendChild(profileTitleContainer);
+    
+    // Add profile header to hero content
+    heroContentDiv.appendChild(profileHeader);
+    
+    // Add profile summary if available
+    if (profileSummary) {
+      const summaryElement = document.createElement('div');
+      summaryElement.className = 'hero-summary';
+      summaryElement.textContent = profileSummary.textContent;
+      heroContentDiv.appendChild(summaryElement);
+    } else if (profileData && profileData.summary) {
+      const summaryElement = document.createElement('div');
+      summaryElement.className = 'hero-summary';
+      summaryElement.textContent = profileData.summary;
+      heroContentDiv.appendChild(summaryElement);
+    }
+    
+    // Create contact section wrapper (right side)
     const contactWrapper = document.createElement('div');
     contactWrapper.className = 'pdf-contact-wrapper';
     
@@ -960,9 +1268,9 @@ const swapSectionsForPdf = (options = {}) => {
         ${contactData.items.map(item => `
           <div class="pdf-contact-item">
             <div class="pdf-contact-icon">${item.icon}</div>
-            <div>
+            <div class="pdf-contact-text">
               <div class="pdf-contact-label">${item.label}</div>
-              <div>${item.value}</div>
+              <div class="pdf-contact-value">${item.value}</div>
             </div>
           </div>
         `).join('')}
@@ -974,15 +1282,82 @@ const swapSectionsForPdf = (options = {}) => {
     heroContainer.appendChild(heroContentDiv);
     heroContainer.appendChild(contactWrapper);
     
-    // CRITICAL FIX: Add a validation/correction timeout to ensure proper rendering
+    // Enhanced validation timeout to ensure proper rendering with improved debugging
     const validationTimeout = setTimeout(() => {
+      console.log('Running PDF contact section validation...');
+      
       const contactWrapperCheck = document.querySelector('.pdf-contact-wrapper');
-      if (contactWrapperCheck && contactWrapperCheck.offsetWidth < 10) {
-        console.log('Fixing contact wrapper visibility...');
-        contactWrapperCheck.style.cssText = 'width: 45% !important; display: block !important; visibility: visible !important;';
+      if (contactWrapperCheck) {
+        console.log('Contact wrapper width:', contactWrapperCheck.offsetWidth, 'px');
+        
+        // Always force proper dimensions and visibility for contact wrapper
+        contactWrapperCheck.style.cssText = 'width: 40% !important; min-width: 150px !important; display: block !important; visibility: visible !important; overflow: visible !important; z-index: 999 !important;';
+        
+        const heroContentCheck = document.querySelector('.pdf-hero-content');
+        if (heroContentCheck) {
+          heroContentCheck.style.cssText = 'width: 60% !important; display: block !important; visibility: visible !important; overflow: visible !important;';
+        }
         
         // Force repaint
         contactWrapperCheck.getBoundingClientRect();
+      } else {
+        console.warn('Contact wrapper not found in validation');
+      }
+      
+      // Verify contact items are visible and properly sized
+      const contactItems = document.querySelectorAll('.pdf-contact-item');
+      console.log('Found', contactItems.length, 'contact items');
+      
+      if (contactItems.length > 0) {
+        contactItems.forEach((item, index) => {
+          console.log(`Contact item ${index} height:`, item.offsetHeight, 'px');
+          
+          // Always force visibility and proper sizing for contact items
+          item.style.cssText = 'display: flex !important; visibility: visible !important; width: 100% !important; min-height: 30px !important; margin-bottom: 10px !important; align-items: flex-start !important;';
+          
+          // Also ensure all child elements are visible
+          const contactText = item.querySelector('.pdf-contact-text');
+          const contactIcon = item.querySelector('.pdf-contact-icon');
+          const contactLabel = item.querySelector('.pdf-contact-label');
+          const contactValue = item.querySelector('.pdf-contact-value');
+          
+          if (contactText) {
+            contactText.style.cssText = 'display: block !important; visibility: visible !important; flex: 1 !important; min-width: 100px !important;';
+          }
+          
+          if (contactIcon) {
+            contactIcon.style.cssText = 'display: flex !important; visibility: visible !important; margin-right: 10px !important;';
+          }
+          
+          if (contactLabel) {
+            contactLabel.style.cssText = 'display: block !important; visibility: visible !important; margin-bottom: 3px !important;';
+          }
+          
+          if (contactValue) {
+            contactValue.style.cssText = 'display: block !important; visibility: visible !important; word-break: break-word !important;';
+          }
+        });
+      } else {
+        console.warn('No contact items found in validation');
+        
+        // Try to reconstruct the contact items if none were found
+        const contactGrid = document.querySelector('.pdf-contact-grid');
+        if (contactGrid && contactData.items.length > 0) {
+          console.log('Attempting to reconstruct contact items...');
+          
+          contactGrid.innerHTML = contactData.items.map(item => `
+            <div class="pdf-contact-item" style="display: flex !important; visibility: visible !important; width: 100% !important; min-height: 30px !important; margin-bottom: 10px !important;">
+              <div class="pdf-contact-icon" style="display: flex !important; visibility: visible !important; margin-right: 10px !important;">${item.icon}</div>
+              <div class="pdf-contact-text" style="display: block !important; visibility: visible !important; flex: 1 !important; min-width: 100px !important;">
+                <div class="pdf-contact-label" style="display: block !important; visibility: visible !important; margin-bottom: 3px !important;">${item.label}</div>
+                <div class="pdf-contact-value" style="display: block !important; visibility: visible !important; word-break: break-word !important;">${item.value}</div>
+              </div>
+            </div>
+          `).join('');
+          
+          // Force repaint again
+          contactGrid.getBoundingClientRect();
+        }
       }
     }, layoutTimeout);
     originalPositions.validationTimeout = validationTimeout;
