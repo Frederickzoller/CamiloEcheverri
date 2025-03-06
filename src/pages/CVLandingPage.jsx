@@ -751,17 +751,6 @@ const CVLandingPage = () => {
             Contact
           </MobileNavLink>
         </MobileNavLinks>
-        
-        <Button 
-          variant="primary" 
-          style={{ marginTop: 'auto', marginBottom: '1rem' }} 
-          onClick={() => {
-            closeMobileMenu();
-            handleExportPdf();
-          }}
-        >
-          Download CV
-        </Button>
       </MobileMenu>
       
       {/* Main Content */}
