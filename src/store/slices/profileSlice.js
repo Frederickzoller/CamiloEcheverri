@@ -86,7 +86,7 @@ const initialState = {
       items: [
         { name: 'AI/Prompt Engineering', proficiency: 90 },
         { name: 'Web3 Technologies', proficiency: 95 },
-        { name: 'Interoperable Gaming', proficiency: 80 },
+        { name: 'Interoperable Gaming', proficiency: 95 },
         { name: 'Metaverse Development', proficiency: 80 },
         { name: 'NFT Infrastructure', proficiency: 85 },
       

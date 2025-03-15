@@ -907,7 +907,6 @@ const CVLandingPage = () => {
                       <SkillItem key={i} className="skill-item">
                         <SkillName variant="body" weight="500" noMargin>
                           {skill.name}
-                          <span>{skill.proficiency}%</span>
                         </SkillName>
                         
                         <ProgressBar
