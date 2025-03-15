@@ -51,6 +51,7 @@ const initialState = {
         'Developed the first AI metaverse asset appraisal engine, reaching 370k valuations per month',
         'Secured grants of over 500k USD from leading web3 companies such as The Sandbox, Decentraland, Polygon, Ocean Protocol and Chainlink',
         'Secured $2.5M in Seed funding with a 7.5 million valuation',
+        'Acquired by Fitchin, the biggest esports platform in LATAM',
   
       ],
     },
