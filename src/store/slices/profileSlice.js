@@ -71,7 +71,7 @@ const initialState = {
     {
       company: 'Index Intelligence',
       title: 'Index Data Analyst',
-      period: 'Jun 2010 - Feb 2014',
+      period: 'Dec 2020 - Jan 2023',
       location: 'Frankfurt, GER',
       description: 'Developed equity indices for leading hedge funds and asset managers in EMEA region',
       achievements: [
