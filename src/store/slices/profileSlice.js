@@ -28,9 +28,9 @@ const initialState = {
       icon: 'users',
     },
     {
-      label: 'Metaverse LAND Valuations',
-      value: '370000',
-      period: 'monthly API calls',
+      label: 'Successful Exit',
+      value: '1',
+      period: '2025',
       icon: 'globe',
     },
     {
