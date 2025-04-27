@@ -4,8 +4,8 @@ import { createSlice } from '@reduxjs/toolkit';
 const initialState = {
   personalInfo: {
     name: 'Camilo Echeverri',
-    title: 'Founder and Gaming Interoperability Specialist',
-    summary: 'Web3 explorer since 2017. Transitioned from tradfi to Blockchain development, co-founding THE HUB DAO. Focused on disrupting the new Internet through interoperable gaming assets and true digital ownership. AI and prompt engineering enthusiast.',
+    title: 'Founder, Digital Identity Specialist and AI Enthusiast',
+    summary: 'Over seven years, I have bridged traditional finance and Web3. Co-founded THE HUB DAO and The DAC, achieving 200% YOY growth, $2.5M seedfunding, securing over $500K in grants, architecting on-chain 3D avatars and incubating 10+ startups.',
     contact: {
       email: 'camilo.echeverri@thehubdao.xyz',
       phone: '+4915759128734',
@@ -44,7 +44,7 @@ const initialState = {
     {
       company: 'THE HUB',
       title: 'Co-Founder',
-      period: 'Apr 2021 - Present',
+      period: 'Apr 2021 - Apr 2025',
       location: 'Frankfurt, DE',
       description: 'Led the development of the homebase of the 3D Web, The first interoperable on-chain avatar platform designed for gamers and creators. Backed by Brinc, Ocean Protocol, The Sandbox, Chainlink, Decentraland, Polygon and Lukso',
       achievements: [
@@ -58,7 +58,7 @@ const initialState = {
     {
       company: 'The DAC',
       title: 'Co-Founder',
-      period: 'Mar 2022 - Present',
+      period: 'Mar 2022 - Jan 2025',
       location: 'Frankfurt, GER',
       description: 'Created a LATAM focused incubator for Web3 projects. Ran through three cohorts, with 10+ startups and 100+ participants',
       achievements: [
